@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+    <title>Elmines</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css"
+        rel="stylesheet">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        * {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <main id="elm-node"></main>
+    <script src="/bundle.js"></script>
+    <script>Elm.Main.init({ node: document.getElementById('elm-node') })</script>
+</body>
+
+</html>
