@@ -3,4 +3,3 @@ node_modules
 .pnp*
 .vscode
 .DS_Store
-yarn-*
