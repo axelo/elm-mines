@@ -31,6 +31,7 @@ type alias Model =
 type PlayState
     = Running
     | GameOver
+    | Won
 
 
 type alias Coord =
@@ -196,6 +197,58 @@ isSquareZeroRevealedAt grid coord =
 
         _ ->
             False
+
+
+countUnrevealedSquared : Grid -> Int
+countUnrevealedSquared grid =
+    Dict.foldl
+        (\_ v count ->
+            if v.status == Unrevealed || v.status == UnrevealedAndMarked then
+                count + 1
+
+            else
+                count
+        )
+        0
+        grid
+
+
+countBombs : Grid -> Int
+countBombs grid =
+    Dict.foldl
+        (\_ v count ->
+            case v.kind of
+                ABomb _ ->
+                    count + 1
+
+                _ ->
+                    count
+        )
+        0
+        grid
+
+
+countMarked : Grid -> Int
+countMarked grid =
+    Dict.foldl
+        (\_ v count ->
+            case v.status of
+                RevealedAndMarked ->
+                    count + 1
+
+                UnrevealedAndMarked ->
+                    count + 1
+
+                _ ->
+                    count
+        )
+        0
+        grid
+
+
+allBombsFound : Grid -> Bool
+allBombsFound grid =
+    countBombs grid == countUnrevealedSquared grid
 
 
 
@@ -407,7 +460,18 @@ update msg model =
                                                 ( { model | grid = updatedGrid, playState = GameOver }, Cmd.none )
 
                                             _ ->
-                                                ( { model | grid = Dict.insert coord (GridSquare kind Revealed) model.grid }, Cmd.none )
+                                                let
+                                                    updatedGrid =
+                                                        Dict.insert coord (GridSquare kind Revealed) model.grid
+
+                                                    updatedPlaystate =
+                                                        if allBombsFound updatedGrid then
+                                                            Won
+
+                                                        else
+                                                            Running
+                                                in
+                                                ( { model | grid = updatedGrid, playState = updatedPlaystate }, Cmd.none )
 
                                     else
                                         ( model, Cmd.none )
@@ -434,6 +498,9 @@ update msg model =
                 GameOver ->
                     ( model, Cmd.none )
 
+                Won ->
+                    ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -457,7 +524,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ style "width" (String.fromInt (gridSquareSize * gridSize + 2) ++ "px") ]
         [ viewHud model
         , viewGrid model.grid model.cheat model.playState
         ]
@@ -467,20 +534,45 @@ viewHud : Model -> Html msg
 viewHud model =
     div
         [ class "flex items-center justify-between"
-        , style "width" (String.fromInt (gridSquareSize * gridSize + 2) ++ "px")
         ]
-        [ div
-            [ class "relative w-16 h-8 flex items-center bg-black"
-            , style "font-family" "DSEG7Classic"
-            , style "font-size" "1.5rem"
-            ]
-            [ span [ class "text-red-dark opacity-25", style "padding-left" "0.125rem" ] [ text "000" ] ]
-        , div [ class "text-3xl", style "transform" "translateY(3px)" ] [ text "\u{1F913}" ]
-        , viewTimer (timeSpent model)
+        [ viewBombsLeftAccordingToThePlayer model
+        , viewPlayer model
+        , viewTimer model
         ]
 
 
-viewTimer time =
+viewPlayer : Model -> Html msg
+viewPlayer model =
+    let
+        avatar =
+            case model.playState of
+                Running ->
+                    case modBy 10 (timeSpent model) of
+                        0 ->
+                            "😑"
+
+                        _ ->
+                            "😐"
+
+                GameOver ->
+                    "😵"
+
+                Won ->
+                    "\u{1F929}"
+    in
+    div [ class "text-3xl", style "transform" "translateY(4px)" ] [ text avatar ]
+
+
+viewBombsLeftAccordingToThePlayer model =
+    viewDigits (countBombs model.grid - countMarked model.grid)
+
+
+viewTimer model =
+    viewDigits (timeSpent model)
+
+
+viewDigits : Int -> Html msg
+viewDigits digits =
     div
         [ class "relative w-16 h-8 flex items-center bg-black"
         , style "font-family" "DSEG7Classic"
@@ -495,7 +587,7 @@ viewTimer time =
             [ class "absolute pin-r text-red"
             , style "padding-right" "0.125rem"
             ]
-            [ min 999 time |> String.fromInt |> text ]
+            [ clamp -99 999 digits |> String.fromInt |> text ]
         ]
 
 
