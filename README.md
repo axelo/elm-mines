@@ -4,6 +4,8 @@ Minesweeper clone written in Elm.
 
 Sill work in progress 😌.
 
+Try latest version [here](https://axelo.github.io/elm-mines/)
+
 ## Try it
 
 Clone the project and run
