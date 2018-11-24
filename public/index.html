@@ -22,6 +22,13 @@
         font-family: 'DSEG7Classic';
         src: url('assets/DSEG7Classic-Bold.woff2') format('woff2');
       }
+
+      @supports not (-webkit-overflow-scrolling: touch) {
+        /* CSS for other than iOS devices */
+        .emoji-valign {
+          transform: translateY(4px);
+        }
+      }
     </style>
   </head>
   <body>

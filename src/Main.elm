@@ -560,7 +560,7 @@ viewPlayer model =
                 Won ->
                     "\u{1F929}"
     in
-    div [ class "text-3xl", style "transform" "translateY(4px)" ] [ text avatar ]
+    div [ class "text-3xl emoji-valign" ] [ text avatar ]
 
 
 viewBombsLeftAccordingToThePlayer model =
