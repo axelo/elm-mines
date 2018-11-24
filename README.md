@@ -6,7 +6,7 @@ Sill work in progress 😌.
 
 Try latest version [here](https://axelo.github.io/elm-mines/)
 
-## Try it
+## Try it for development
 
 Clone the project and run
 
