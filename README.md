@@ -8,11 +8,11 @@ Sill work in progress 😌.
 
 Clone the project and run
 
-    yarn
+    npm install
 
 Then
 
-    yarn start
+    npm start
 
 ## Attributions
 

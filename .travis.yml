@@ -1,0 +1,22 @@
+language: node_js
+node_js:
+  - '11'
+dist: trusty
+sudo: false
+
+branches:
+  only:
+    - master
+
+cache: npm
+
+script:
+  - npm build
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  local_dir: dist
+  on:
+    branch: master
