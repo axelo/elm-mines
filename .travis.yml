@@ -1,8 +1,6 @@
-language: node_js
+language: elm
 node_js:
   - '11'
-dist: trusty
-sudo: false
 
 branches:
   only:
