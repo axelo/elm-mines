@@ -10,6 +10,6 @@
   },
   "scripts": {
     "start": "elm-live --port 3000 --pushstate --dir public src/Main.elm -- --output=public/bundle.js",
-    "build": "rm -rf dist && mkdir dist && cp public/index.html dist/ && cp -R public/assets dist/ && elm make src/Main.elm --output=dist/bundle.js"
+    "build": "rm -rf dist && mkdir dist && cp public/index.html dist/ && cp public/elm-mines.css dist/ && cp -R public/assets dist/ && elm make src/Main.elm --output=dist/bundle.js"
   }
 }
