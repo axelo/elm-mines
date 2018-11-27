@@ -13,12 +13,6 @@ import Task
 import Time
 
 
-
--- TODO
--- Render number of mines
--- Render smiley based 🤓 🙂 😳 😵 🤔
-
-
 type alias Model =
     { grid : Grid
     , cheat : Bool
@@ -92,7 +86,8 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-    ( { grid = makeGrid gridSize gridSize (Set.fromList [ ( 0, 4 ), ( 3, 4 ), ( 4, 4 ), ( 5, 4 ), ( 7, 6 ), ( 9, 9 ), ( 9, 12 ), ( 6, 15 ), ( 3, 15 ), ( 0, 15 ), ( 6, 1 ) ])
+    ( { -- grid = makeGrid gridSize gridSize (Set.fromList [ ( 3, 4 ), ( 5, 4 ) ])
+        grid = makeGrid gridSize gridSize (Set.fromList [ ( 0, 4 ), ( 3, 4 ), ( 4, 4 ), ( 5, 4 ), ( 7, 6 ), ( 9, 9 ), ( 9, 12 ), ( 6, 15 ), ( 3, 15 ), ( 0, 15 ), ( 6, 1 ) ])
       , cheat = False
       , playState = Running
       , startTime = Time.millisToPosix 0
@@ -385,6 +380,19 @@ clearNonEmptySquaresAtBorderOfEmpty grid =
     Dict.map tryReveal grid
 
 
+markAllUnrevealedBombs : Grid -> Grid
+markAllUnrevealedBombs grid =
+    Dict.map
+        (\c v ->
+            if v.kind == ABomb Ticking && v.status == Unrevealed then
+                GridSquare v.kind UnrevealedAndMarked
+
+            else
+                v
+        )
+        grid
+
+
 type KeyPressDirection
     = KeyUp
     | KeyDown
@@ -395,6 +403,15 @@ type Msg
     | KeyPressed KeyPressDirection String
     | GotStartTime Time.Posix
     | GotCurrentTime Time.Posix
+
+
+updatePlaystate : Model -> Grid -> Model
+updatePlaystate model grid =
+    if allBombsFound grid then
+        { model | grid = markAllUnrevealedBombs grid, playState = Won }
+
+    else
+        { model | grid = grid, playState = Running }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -435,7 +452,7 @@ update msg model =
                                                     updatedGrid =
                                                         clearNonEmptySquaresAtBorderOfEmpty clearedGrid
                                                 in
-                                                ( { model | grid = updatedGrid }, Cmd.none )
+                                                ( updatePlaystate model updatedGrid, Cmd.none )
 
                                             ABomb _ ->
                                                 let
@@ -463,15 +480,8 @@ update msg model =
                                                 let
                                                     updatedGrid =
                                                         Dict.insert coord (GridSquare kind Revealed) model.grid
-
-                                                    updatedPlaystate =
-                                                        if allBombsFound updatedGrid then
-                                                            Won
-
-                                                        else
-                                                            Running
                                                 in
-                                                ( { model | grid = updatedGrid, playState = updatedPlaystate }, Cmd.none )
+                                                ( updatePlaystate model updatedGrid, Cmd.none )
 
                                     else
                                         ( model, Cmd.none )
@@ -524,16 +534,18 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ style "width" (String.fromInt (gridSquareSize * gridSize + 2) ++ "px") ]
-        [ viewHud model
-        , viewGrid model.grid model.cheat model.playState
+    div [ class "h-full flex flex-col items-center justify-center" ]
+        [ div [ style "width" (String.fromInt (gridSquareSize * gridSize + 2) ++ "px") ]
+            [ viewHud model
+            , viewGrid model.grid model.cheat model.playState
+            ]
         ]
 
 
 viewHud : Model -> Html msg
 viewHud model =
     div
-        [ class "flex items-center justify-between"
+        [ class "flex items-center justify-between bg-grey-light"
         ]
         [ viewBombsLeftAccordingToThePlayer model
         , viewPlayer model
@@ -560,7 +572,7 @@ viewPlayer model =
                 Won ->
                     "\u{1F929}"
     in
-    div [ class "text-3xl emoji-valign" ] [ text avatar ]
+    div [ class "text-3xl emoji-valign h-8" ] [ text avatar ]
 
 
 viewBombsLeftAccordingToThePlayer model =
@@ -697,7 +709,7 @@ viewNotClearedSquare coord kind marked cheat playState =
         , Events.on "click" (Decode.map (SquaredClicked coord) (Decode.field "shiftKey" Decode.bool))
         ]
         [ if marked then
-            div [ style "margin-top" "0.125rem" ] [ text "⛳" ]
+            div [ style "margin-top" "0.125rem", style "margin-left" "0.125rem" ] [ text "⛳" ]
 
           else
             text ""
